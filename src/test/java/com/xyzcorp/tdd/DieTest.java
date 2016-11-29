@@ -17,7 +17,7 @@ public class DieTest {
     @Test
     @Category(value=UnitTest.class)
     public void testDefaultIs1() throws Exception {
-        Die die = new Die(createMock(Random.class)); //Reliant Randomizer
+        Die die = new DieImpl(createMock(Random.class)); //Reliant Randomizer
         assertThat(die.getPips()).isEqualTo(1);
     }
 
@@ -29,11 +29,11 @@ public class DieTest {
 
         Random randomStub = new Random() {
             @Override
-            public int nextInt() {
-                return 4;
+            public int nextInt(int bound) {
+                return 3;
             }
         };
-        Die die = new Die(randomStub);
+        Die die = new DieImpl(randomStub);
         Die rolledDie = die.roll();
         assertThat(rolledDie.getPips()).isEqualTo(4);
         assertThat(die.getPips()).isEqualTo(1);
@@ -47,11 +47,11 @@ public class DieTest {
 
         Random randomStub = new Random() {
             @Override
-            public int nextInt() {
-                return 2;
+            public int nextInt(int bound) {
+                return 1;
             }
         };
-        Die die = new Die(randomStub);
+        Die die = new DieImpl(randomStub);
         Die rolledDie = die.roll();
         assertThat(rolledDie.getPips()).isEqualTo(2);
         assertThat(die.getPips()).isEqualTo(1);
@@ -64,18 +64,21 @@ public class DieTest {
         //Mockito: Random randomMock = mock(Random.class)
 
         //Rehearsal
-        expect(randomMock.nextInt()).andReturn(2).andReturn(5);
-        //Mockito: when(...).andReturn(2,5);
+        expect(randomMock.nextInt(6)).andReturn(1).andReturn(4);
+        //Mockito: when(...).thenReturn(2,5);
 
         //Replay
         replay(randomMock);
 
-        Die die = new Die(randomMock);
+        //-------------------This where the test resides----------
+        Die die = new DieImpl(randomMock);
         Die rolled1 = die.roll();
         Die rolled2 = rolled1.roll();
 
         assertThat(rolled1.getPips()).isEqualTo(2);
         assertThat(rolled2.getPips()).isEqualTo(5);
+        //-------------------This is where the test ends----------
+
 
         //Verify
         verify(randomMock);
@@ -88,15 +91,15 @@ public class DieTest {
     @Category(value=UnitTest.class)
     public void testThatRandomIsNotNull() throws Exception {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage(Die.RANDOM_IS_NULL);
-        new Die(null);
+        thrown.expectMessage(DieImpl.RANDOM_IS_NULL);
+        new DieImpl(null);
     }
 
     @Test
     @Category(value=IntegrationTest.class)
     public void testRollAMillionTimeToMakesWeInContraint() {
         Random random = new Random();
-        Die die = new Die(random);
+        Die die = new DieImpl(random);
         for (int i = 0; i < 1000000; i++) {
            assertThat(die.roll().getPips()).isGreaterThan(0).isLessThan(7);
         }
@@ -106,12 +109,21 @@ public class DieTest {
     @Category(value=UnitTest.class)
     public void testBUG3200() {
         Random random = createMock(Random.class);
-        expect(random.nextInt(7)).andReturn(4);
-        replay(random);
-
-        Die die = new Die(random);
+        expect(random.nextInt(6)).andReturn(4);
+        replay(random); //Marking mock to run
+        Die die = new DieImpl(random);
         assertThat(die.roll().getPips()).isGreaterThan(0).isLessThan(7);
+        verify(random);
+    }
 
+    @Test
+    @Category(value=UnitTest.class)
+    public void testBUG3200WithZero() {
+        Random random = createMock(Random.class);
+        expect(random.nextInt(6)).andReturn(0);
+        replay(random); //Marking mock to run
+        Die die = new DieImpl(random);
+        assertThat(die.roll().getPips()).isGreaterThan(0).isLessThan(7);
         verify(random);
     }
 }
