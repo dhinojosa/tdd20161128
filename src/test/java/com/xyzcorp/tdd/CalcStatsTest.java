@@ -1,7 +1,8 @@
 package com.xyzcorp.tdd;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.assertj.core.data.Offset;
+import org.junit.*;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 
 import java.util.Optional;
@@ -11,9 +12,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+@Category(value = {UnitTest.class})
 public class CalcStatsTest {
 
-	@Test
+	private static CalcStats emptyArray;
+
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
+
+	@BeforeClass
+	public static void setUpBeforeAnyTestsRun() {
+		System.out.println("Before class");
+		emptyArray = new CalcStats(new int[] {});
+	}
+
+	@AfterClass
+	public static void setUpAfterAnyTestsRun() {
+		System.out.println("After class");
+	}
+
+	@Before
+	public void setUp() {
+		System.out.println("Before method");
+	}
+
+	@After
+	public void tearDown() {
+		System.out.println("After method");
+	}
+
+	@Test 
 	public void testMinimumFromAnArrayOfOneItem() {
 		// 0. Is there something already created that this should belong to?
 		// 1. Find the simplest thing that I can test.
@@ -39,12 +67,12 @@ public class CalcStatsTest {
 		// 2. null
 		// 3. java.util.Optional
 
-		CalcStats cs = new CalcStats(new int[] {});
-		Optional<Integer> result = cs.getMinimum();
+		Optional<Integer> result = emptyArray.getMinimum();
 		assertEquals(Optional.empty(), result);
 	}
 
 	@Test
+	@Category(value = {AwesomeTest.class})
 	public void testMinimumFromAnArrayOfTwoItemsMinFirst() {
 		CalcStats cs = new CalcStats(new int[] { 3, 10 });
 		assertEquals(Optional.of(3), cs.getMinimum());
@@ -87,8 +115,7 @@ public class CalcStatsTest {
 		}
 	}
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
+
 
 	@Test
 	public void testMinimumFromAnArrayWhereArrayIsNullRuleForm() {
@@ -106,8 +133,7 @@ public class CalcStatsTest {
 
 	@Test
 	public void testMaximumFromAnArrayOfNoItems() {
-		CalcStats cs = new CalcStats(new int[] {});
-		assertThat(cs.getMaximum()).isEmpty();
+		assertThat(emptyArray.getMaximum()).isEmpty();
 	}
 
 	@Test
@@ -128,13 +154,12 @@ public class CalcStatsTest {
 
 	@Test
 	public void testTypeIdentityWithFunction() {
-		System.out.println(foo(String::compareTo));
+		//System.out.println(foo(String::compareTo));
 	}
 
 	@Test
 	public void testSizeWithZeroItems() {
-		CalcStats cs = new CalcStats(new int[] {});
-        assertThat(cs.getSize()).isEqualTo(0);
+        assertThat(emptyArray.getSize()).isEqualTo(0);
 	}
 
 	@Test
@@ -143,4 +168,35 @@ public class CalcStatsTest {
 		assertThat(cs.getSize()).isEqualTo(1);
 	}
 
+	@Test
+	public void testAverageFromAnArrayOfOneItem() {
+		CalcStats cs = new CalcStats(new int[] { 100 });
+		assertThat(cs.getAverage()).isEqualTo(Optional.of(100.0));
+	}
+	
+	@Test
+	public void testAverageFromAnArrayOfTwoItemEven() {
+		CalcStats cs = new CalcStats(new int[] { 0, 100 });
+		assertThat(cs.getAverage()).isEqualTo(Optional.of(50.0));
+	}
+	
+	@Test
+	public void testAverageFromArrayOfThreeItemsThatEqual100DividedByThree() {
+		CalcStats cs = new CalcStats(new int[] { 0, 50, 50});
+		assertThat(cs.getAverage()).hasValueSatisfying
+				(d ->  assertThat(d).isEqualTo(33.33, Offset.offset(.01)));
+	}
+	
+	@Test
+	public void testAverageFromArrayOfZeroItems() {
+		assertThat(emptyArray.getAverage()).isEqualTo(Optional.empty());
+	}
+
+	//NoRed
+	@Test
+	public void testAverageFromArrayOfTwoItemsThatContainANegative() {
+		CalcStats cs = new CalcStats(new int[] { -100, 100});
+		assertThat(cs.getAverage()).contains(0.0);
+	}
+	
 }

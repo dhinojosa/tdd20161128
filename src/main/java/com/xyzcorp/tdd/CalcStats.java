@@ -2,6 +2,7 @@ package com.xyzcorp.tdd;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.IntPredicate;
 
 public class CalcStats {
 
@@ -32,5 +33,14 @@ public class CalcStats {
 
 	public int getSize() {
 		return intArray.length;
+	}
+
+	public Optional<Double> getAverage() {
+		if (intArray.length == 0) return Optional.empty();
+		double sum = 0.0;
+		for (int i = 0; i < getSize(); i++) {
+			sum += intArray[i];
+		}
+		return Optional.of(sum / getSize());
 	}
 }
