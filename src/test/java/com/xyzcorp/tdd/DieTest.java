@@ -114,5 +114,4 @@ public class DieTest {
 
         verify(random);
     }
-
 }
