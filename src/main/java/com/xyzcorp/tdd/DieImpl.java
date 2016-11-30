@@ -10,7 +10,7 @@ public class DieImpl implements Die {
     private final int pips;  //should be final
     private final Random random;
 
-    private DieImpl(Random random) {
+    protected DieImpl(Random random) {
        this(random, DEFAULT_PIPS);
     }
 
